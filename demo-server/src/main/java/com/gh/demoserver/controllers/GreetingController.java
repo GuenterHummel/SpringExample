@@ -1,5 +1,6 @@
 package com.gh.demoserver.controllers;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class GreetingController {
 
     @GetMapping("/greeting") // maps to http://localhost:8080/hello?name=Gue
-    public String greeting(@RequestParam(name="name", defaultValue="World") String name, Model model) {
+    public String greeting(@RequestParam(name="name", defaultValue="World") String name, @NonNull Model model) {
         model.addAttribute("name", name);
         return "greeting"; // forward to /src/main/resources/templates/greeting.html
     }

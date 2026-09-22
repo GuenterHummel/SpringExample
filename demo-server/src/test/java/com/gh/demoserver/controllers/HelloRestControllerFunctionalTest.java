@@ -1,9 +1,9 @@
 package com.gh.demoserver.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,37 +18,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class HelloRestControllerFunctionalTest {
 
-    @Autowired
+    @LocalServerPort
+    private int port;
+
     private TestRestTemplate restTemplate;
+    private String baseUrl;
+
+    @BeforeEach
+    void setUp() {
+        this.restTemplate = new TestRestTemplate();
+        this.baseUrl = "http://localhost:" + port;
+    }
 
     @Test
-    void autowiringWorked(@LocalServerPort int port)
-    {
+    void autowiringWorked(@LocalServerPort int port) {
         assertNotNull(restTemplate);
-        System.out.println("Test server  running on port: " +  port);
+        System.out.println("Test server running on port: " + port);
     }
 
     @Test
     void greetWithoutName() {
-        Greeting greeting = restTemplate.getForObject("/rest", Greeting.class);
-
+        Greeting greeting = restTemplate.getForObject(baseUrl + "/rest", Greeting.class);
         assertAll(
                 () -> assertNotNull(greeting),
-                () -> assertEquals("Hello, World!", greeting.message())
+                () -> {
+                    assert greeting != null;
+                    assertEquals("Hello, World!", greeting.message());
+                }
         );
     }
 
     @Test
     void greetWithName() {
-        ResponseEntity<Greeting> response = restTemplate.getForEntity("/rest?name={name}", Greeting.class, "Dolly");
-
+        ResponseEntity<Greeting> response = restTemplate.getForEntity(baseUrl + "/rest?name={name}", Greeting.class, "Dolly");
         assertAll(
                 () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
-                () -> assertEquals(MediaType.APPLICATION_JSON,
-                        response.getHeaders().getContentType()),
-                () -> assertEquals("Hello, Dolly!",
-                        Objects.requireNonNull(response.getBody()).message())
+                () -> assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType()),
+                () -> assertEquals("Hello, Dolly!", Objects.requireNonNull(response.getBody()).message())
         );
     }
-
 }
